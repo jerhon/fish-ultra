@@ -8,8 +8,3 @@ export function normalize(value: number) {
         return 0
     }
 }
-
-
-export function randomNormal() {
-    return normalize(Math.random() - 0.5)
-}

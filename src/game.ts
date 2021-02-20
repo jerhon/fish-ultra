@@ -10,7 +10,7 @@ const config = {
     backgroundColor: '#0000FF',
     scale: {
         mode: ScaleModes.FIT,
-        autoCenter: Center.CENTER_BOTH
+        autoCenter: Center.CENTER_HORIZONTALLY
     },
     physics: {
         default: 'arcade',
@@ -25,4 +25,15 @@ const config = {
 
 const game = new Phaser.Game(config)
 
-game.scene.add("Tank", new TankScene({}), true)
+const tank = new TankScene({});
+
+game.scene.add("Tank", tank, true)
+
+const feedButton = document.getElementById("feed")
+if (feedButton) {
+    feedButton.onclick = () => {
+        tank.feed()
+    }
+}
+
+

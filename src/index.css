@@ -1,9 +1,40 @@
-#game
-{
-    width: 100vw;
-    height: 100vh;
-}
 body {
     padding: 0;
     margin: 0;
+}
+
+
+.button {
+    background-color: white;
+    border: 1px solid grey;
+    border-radius: 2px;
+    padding: 10px;
+    margin: 10px;
+    font-size: 16px;
+
+    transition: background-color 250ms ease-out;
+    box-shadow: none;
+    cursor: pointer;
+    min-width: 100px;
+}
+.button:hover {
+    background-color: #E0E0E0
+}
+.button:focus {
+    outline: none;
+}
+
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+.controls {
+    display: flex;
+    flex-direction: row;
+    flex: 0 0 60px;
+}
+.tank {
+    height: calc(100vh - 60px);
 }

@@ -44,8 +44,8 @@ export class Fish {
 
     scatter() {
         if (this.sprite) {
-            const xVelocity = (Math.random() - 0.5) * 500 + 100;
-            const yVelocity = (Math.random() - 0.5) * 500 + 100;
+            const xVelocity = ((Math.random() - 0.5) * 1.5) * 800 ;
+            const yVelocity = ((Math.random() - 0.5) * 1.5) * 800 ;
 
             this.sprite.body.setVelocityX(xVelocity)
             this.sprite.body.setVelocityY(yVelocity)
