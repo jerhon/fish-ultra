@@ -1,48 +1,61 @@
 import {GameObject} from "./game-object";
 import Phaser from "phaser";
+import {FoodEaten, TankScene} from "../tank-scene";
 
 export class Food implements GameObject {
 
-    private body?: Phaser.Physics.Arcade.Body
-    private startTime?: number;
+    private readonly _sprite: Phaser.GameObjects.GameObject & Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    private readonly _startTime: number;
 
-    constructor(private readonly scene: Phaser.Scene) {
-    }
+    public Consumed: boolean;
 
-    create(): void {
-        const width = this.scene.game.canvas.width;
+    constructor(private readonly _scene: TankScene, private readonly _texture: string) {
+        this.Consumed = false;
+
+        const width = this._scene.game.canvas.width;
 
         const x = Math.random() * width;
 
-        const sprite = this.scene.add.rectangle(x, 0, 20, 20, 0x664f3C);
-        const foodBody = this.scene.physics.add.existing(sprite, false);
-
-        this.body = foodBody.body as Phaser.Physics.Arcade.Body;
-        this.body.collideWorldBounds = true;
-        this.body.allowRotation = true;
-        this.startTime = this.scene.game.getTime()
+        this._sprite = this._scene.physics.add.sprite(x, 0, this._texture);
+        this._sprite.body.setCollideWorldBounds(true)
+        this._sprite.body.setAllowRotation(true)
+        this._startTime = this._scene.game.getTime()
     }
 
+    create() { }
+
+
     update(time: number, delta: number): void {
-        if (this.startTime && this.body) {
-            if (time - this.startTime < 5000) {
-                const rot = Math.sin((time - this.startTime) / 200) * 20
-                this.body.velocity.y = Math.sin((time - this.startTime) / 200) * 5
-                this.body.rotation = 1;
-                this.body.angularAcceleration = 1
-                this.body.maxAngular = (Math.random() * 30) + 10
+        if (this._startTime && this._sprite && !this.Consumed ) {
+            if (time - this._startTime < 3000) {
+                this._sprite.body.velocity.y = Math.sin((time - this._startTime) / 200) * 5
+                this._sprite.body.rotation = 1;
+                this._sprite.body.angularAcceleration = 1.5
+                this._sprite.body.maxAngular = (Math.random() * 30) + 10
             } else {
-                if (this.body.y < (this.scene.game.canvas.height - (this.body.height *2))) {
-                    this.body.acceleration.y = 10;
-                    const rot = Math.sin((time - this.startTime) / 200) * ((this.startTime - time) / 500)
-                    this.body.velocity.x = rot
+                if (this._sprite.body.y < (this._scene.game.canvas.height - (this._sprite.body.height *2))) {
+                    this._sprite.body.acceleration.y = 10;
+                    const rot = Math.sin((time - this._startTime) / 200) * ((this._startTime - time) / 500)
+                    this._sprite.body.velocity.x = rot
                 } else {
-                    this.body.angularAcceleration = 0;
-                    this.body.angularVelocity = 0;
-                    this.body.velocity.x = 0
+                    this._sprite.body.angularAcceleration = 0;
+                    this._sprite.body.angularVelocity = 0;
+                    this._sprite.body.velocity.x = 0
                 }
             }
         }
+    }
+
+    eat() {
+        if (this._sprite) {
+            this.Consumed = true;
+            this._sprite.destroy();
+            this._scene.events.emit(FoodEaten, this);
+        }
+    }
+
+    getPhysics() {
+        return this._sprite;
     }
 
 }

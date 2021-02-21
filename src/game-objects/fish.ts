@@ -1,82 +1,114 @@
 import Phaser from "phaser";
 import {normalize} from "../utils";
+import {Food} from "./food";
+import {TankScene} from "../tank-scene";
 
 
 export enum FishState {
     Swim,
+    GrabTheFood
 }
 
 export class Fish {
 
-    state: FishState;
-    sprite?: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-    lastYDirectionChange: number;
+    _state: FishState;
+    _sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    _lastYDirectionChange: number;
+    _food?: Food;
 
-    constructor(private readonly scene: Phaser.Scene, private readonly texture: string) {
-        this.state = FishState.Swim
-        this.lastYDirectionChange = 0;
-    }
+    constructor(private readonly _scene: TankScene, private readonly texture: string) {
+        this._state = FishState.Swim
+        this._lastYDirectionChange = 0
 
-    create() {
+        this._sprite = this._scene.physics.add.sprite(100, 100, this.texture)
 
-        this.sprite = this.scene.physics.add.sprite(100, 100, this.texture)
+        this._sprite.displayWidth = this._sprite.width * 0.8
+        this._sprite.displayHeight = this._sprite.height * 0.8
+        this._sprite.setCollideWorldBounds(true)
+        this._sprite.setVelocityX(20)
+        this._sprite.setMaxVelocity(100, 100)
+        this._sprite.setDragX(50)
+        this._sprite.setDragY(50)
 
-        this.sprite.displayWidth = this.sprite.width * 0.8
-        this.sprite.displayHeight = this.sprite.height * 0.8
-        this.sprite.setCollideWorldBounds(true)
-        this.sprite.setVelocityX(20)
-        this.sprite.setMaxVelocity(100, 100)
-        this.sprite.setDragX(50)
-        this.sprite.setDragY(50)
-
-        this.sprite.setInteractive();
-        this.sprite.on('pointerdown', () => {
-           this.scatter()
+        this._sprite.setInteractive();
+        this._sprite.on('pointerdown', () => {
+            this.scatter()
         });
     }
 
 
+    create() {}
+
     update(time: number, delta: number) {
-        if (this.state == FishState.Swim) {
+
+
+        /** Update direction of fish based on velocity, eventually, these should be animations to turn. */
+        if (this._sprite.body.velocity.x < 0 && !this._sprite.flipX) {
+            this._sprite.setFlipX(true)
+        }
+        if (this._sprite.body.velocity.x > 0 && this._sprite.flipX) {
+            this._sprite.setFlipX(false)
+        }
+
+        if (this._state == FishState.Swim) {
             this.swim()
+
+            const food = this._scene.getRandomFood();
+            if (food) {
+                this._state = FishState.GrabTheFood
+                this._food = food
+                this._scene.physics.add.collider(this._sprite, food.getPhysics(), () => this.eat())
+            }
+        } else if (this._state == FishState.GrabTheFood) {
+            // Try to move to the food
+
+            if (this._food && !this._food.Consumed) {
+                this._scene.physics.moveToObject(this._sprite, this._food?.getPhysics(), 200)
+            } else {
+                this._state = FishState.Swim
+            }
         }
     }
 
+    /*
+    swimToward(x: number, y: number) {
+
+    }
+    */
+
+    eat() {
+        this._food?.eat();
+    }
+
     scatter() {
-        if (this.sprite) {
+        if (this._sprite) {
             const xVelocity = ((Math.random() - 0.5) * 1.5) * 800 ;
             const yVelocity = ((Math.random() - 0.5) * 1.5) * 800 ;
 
-            this.sprite.body.setVelocityX(xVelocity)
-            this.sprite.body.setVelocityY(yVelocity)
+            this._sprite.body.setVelocityX(xVelocity)
+            this._sprite.body.setVelocityY(yVelocity)
         }
     }
 
     swim() {
-        if (this.sprite) {
+        if (this._sprite) {
 
-            /** Update direction of fish based on velocity, eventually, these should be animations to turn. */
-            if (this.sprite.body.velocity.x < 0 && !this.sprite.flipX) {
-                this.sprite.setFlipX(true)
-            }
-            if (this.sprite.body.velocity.x > 0 && this.sprite.flipX) {
-                this.sprite.setFlipX(false)
-            }
+
 
             /** This should be an animation where the fish flaps it's tail */
-            if (Math.abs(this.sprite.body.velocity.x) < 50) {
-                this.sprite.setVelocityX(200 * Math.random() * normalize(this.sprite.body.velocity.x))
+            if (Math.abs(this._sprite.body.velocity.x) < 50) {
+                this._sprite.setVelocityX(200 * Math.random() * normalize(this._sprite.body.velocity.x))
 
-                if (this.sprite.body.velocity.x == 0) {
-                    this.sprite.body.setVelocityX(200 * (Math.random() - 0.5))
+                if (this._sprite.body.velocity.x == 0) {
+                    this._sprite.body.setVelocityX(200 * (Math.random() - 0.5))
                 }
             }
 
-            if (this.scene.time.now - this.lastYDirectionChange > 3000)
+            if (this._scene.time.now - this._lastYDirectionChange > 3000)
             {
                 if (Math.random() > 0.33) {
-                    this.sprite.body.setVelocityY( (Math.random() - 0.5) * 600  )
-                    this.lastYDirectionChange = this.scene.time.now
+                    this._sprite.body.setVelocityY( (Math.random() - 0.5) * 600  )
+                    this._lastYDirectionChange = this._scene.time.now
                 }
             }
         }
